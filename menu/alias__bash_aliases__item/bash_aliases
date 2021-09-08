@@ -1,0 +1,197 @@
+############   COMMON
+#  pip3 install --user rdbscli
+# cde credential redirect set configservice.zookeeper-a2.configuration.onetapi.pl c2a
+# cde auth add  # https://developer.ringieraxelspringer.tech/Development_Environment/howto/tools/cde/use-datasources-in-aws.html#step-3-setup-default-aws-credentials
+
+# curl -sS https://webinstall.dev/k9s | bash
+# aws eks update-kubeconfig --name k8s-apps-v1 --region eu-central-1
+# kubectl config set-context --current --namespace=adp
+#
+#
+parse_git_branch() { 
+	git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/' 
+}
+
+function run_common_post() {
+	alias reload="source ~/.bashrc"
+	alias _venv="source venv/bin/activate"
+
+	export PATH="$ROOT_WORKSPACE/local/bin:$PATH"
+
+	go() {
+		d=$ROOT_WORKSPACE/workspace/$1
+		[ -d  ${d} ] && cd ${d} && return
+	  	echo  Sorry brachu, ale ${d} nie istnieje
+	}
+
+	golocal() {
+		d=$ROOT_WORKSPACE/local/$1
+		[ -d  ${d} ] && cd ${d} && return
+	  	echo  Sorry brachu, ale ${d} nie istnieje
+	}
+
+
+	gomode() {
+		d=$ROOT_WORKSPACE/workspace/adp-worker/adp_worker/modes/$1
+		[ -d  ${d} ] && cd ${d} && return
+	  	echo  Sorry brachu, ale ${d} nie istnieje
+	}
+
+
+	# complete -W "adp-worker klemanskihelloapp scripts/vendors_copy_script" go
+	d=$ROOT_WORKSPACE/workspace/
+	[ -d ${d} ] && complete -W "$(ls -1 ${d} | tr '\r\n' ' ')" go
+
+	d=$ROOT_WORKSPACE/workspace/adp-worker/adp_worker/modes/
+	[ -d ${d} ] && complete -W "$(ls -1 ${d} | tr '\r\n' ' ')" gomode
+
+	#alias prod_metrics_db="rdbs -v -s prod auth-token dh9jcobdm6"
+	#alias int_metrics_db="rdbs -v -s prod auth-token d5x76ogxnn"
+
+	# echo COMMON ALIASES LOADED '(POST)'
+
+        export PS1="\033[32m\]\$(parse_git_branch)\[\033[00m\]
+\u@\h \W\ $ "
+
+}
+
+
+###########   CDE Specific
+function run_cde_specific() {
+    export PATH=$PATH:~/.kube/plugins/jordanwilson230
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+    	alias install_rdbs="pip3 install --user rdbscli"
+	alias use="cde sdk use"
+
+	alias xr="aws-azure-login"
+	alias xrintadp="aws-azure-login -p int_adp --no-prompt"
+	alias xrprodadp="aws-azure-login -p prod_adp --no-prompt"
+	alias xrintads="aws-azure-login -p int_ads --no-prompt"
+	alias xrprodads="aws-azure-login -p prod_ads --no-prompt"
+	#alias xr0="aws-azure-login -p default --no-prompt"
+	alias xr0=xrintadp
+	alias xr1=xrprodadp
+	alias xr0s=xrintads
+	alias xr1s=xrprodads
+
+	function x(){ 
+		declare -A db
+		declare -A dbenv
+		declare -A xtoken
+
+       # ConfigService adp/adpsalt/rdbs
+
+        key=int_metrics_db   && db[$key]="Metrics DB INT"         && dbenv[$key]=whocares   && xtoken[$key]=d5x76ogxnn
+        key=prod_metrics_db  && db[$key]="Metrics DB PROD"        && dbenv[$key]=whocares   && xtoken[$key]=dh9jcobdm6
+
+		key=prod_adq         && db[$key]="AdQueue PROD"           && dbenv[$key]=xrprodadp  && xtoken[$key]=ds3vj762eh
+		key=int_adq          && db[$key]="AdQueue INT"            && dbenv[$key]=xrintadp   && xtoken[$key]=d5qtb4ycnu
+
+		key=int_schedules    && db[$key]="AdpSchedules INT"       && dbenv[$key]=whocares   && xtoken[$key]=d3o3c7kjr1
+
+		key=int_dasdb        && db[$key]="DAS DB INT"             && dbenv[$key]=xrintadp   && xtoken[$key]=dr74b9imdg
+		key=prod_dasdb       && db[$key]="DAS DB PROD"            && dbenv[$key]=xrprodadp  && xtoken[$key]=dri5mhinit
+		key=dev_dasdb        && db[$key]="DAS DB DEV"             && dbenv[$key]=xrintadp   && xtoken[$key]=dvgdwntj6e
+
+		key=int_adpcmp       && db[$key]="AdpCmp INT"             && dbenv[$key]=xrintadp   && xtoken[$key]=dp7ttu4ff8
+		key=prod_adpcmp      && db[$key]="AdpCmp PROD"            && dbenv[$key]=xrprodadp  && xtoken[$key]=dnvjani4kh
+
+		key=int_imdb         && db[$key]="InventoryManager INT"   && dbenv[$key]=xrintads   && xtoken[$key]=dkhr6x6cjx
+		key=prod_imdb        && db[$key]="InventoryManager PROD"  && dbenv[$key]=xrprodadp  && xtoken[$key]=dkm7yc7odo
+
+		key=prod_reports     && db[$key]="AdpReports PROD"        && dbenv[$key]=xrprodadp  && xtoken[$key]=d3k3rw3oem
+		key=int_reports      && db[$key]="AdpReports INT"         && dbenv[$key]=xrintadp   && xtoken[$key]=d3kpmif9r2
+		key=demo_reports     && db[$key]="AdpReports INT Demo"    && dbenv[$key]=xrintadp   && xtoken[$key]=d3kpmif9r2
+		
+		key=int_mailing      && db[$key]="Mailing INT"            && dbenv[$key]=xrintadp   && xtoken[$key]=d1w84169sg
+		key=prod_mailing     && db[$key]="Mailing PROD"           && dbenv[$key]=xrprodadp  && xtoken[$key]=d4atc5x341
+
+		help_str="x [int_dasdb] [all|db|user] or x[int_dasdb_] [all|db|user]"
+		alias_list=""
+		for key in ${!db[@]}; do
+		    alias_list="${alias_list} ${key}"
+		    alias ${key}_="rdbs -v -s int auth-token ${xtoken[${key}]}"
+		    alias ${key}="adp-rdbs ${db[${key}]}"
+		    alias ${key}_pass="adp-rdbs ${db[${key}]} | grep Password | cut -c 24-"
+		done
+		pass="pass"
+
+		[[ "$1" == "" ]] && adp-rdbs && return
+		[[ "$1" == "help" ]] && xhelp && return 
+		[[ "$1" == "alias_list" ]] && echo "$alias_list" && return
+		[[ "$2" == "" ]] && ${BASH_ALIASES[$1]} | grep Password | cut -c 24- && return
+		[[ "$2" == "all" ]] &&  ${BASH_ALIASES[$1]} && return
+		[[ "$2" == "db" ]] &&  ${BASH_ALIASES[$1]} | grep "Database name" | cut -c 16- && return
+		[[ "$2" == "user" ]] &&  ${BASH_ALIASES[$1]} | grep "User name" | cut -c 18-  && return
+		[[ "$2" == "" ]] && echo "$help_str" && return
+		[[ "$2" == "+r" ]] && key=$1 && ${BASH_ALIASES[${dbenv[$key]}]}  && ${BASH_ALIASES[$key]} | grep Password | cut -c 24- &&  return
+
+	}
+
+	alias_list=$(x "alias_list")
+
+	complete -W "${alias_list}" x
+
+	xhelp(){
+		echo "$help_str"
+		echo " -" for ${alias_list}
+
+		echo xr - for role
+		echo xr0 '|' xintadp
+		echo xr1 '|' xprodadp
+		echo xr0s '|' xintads
+		echo xr1s '|' xprodads
+	}
+
+	kibana_prod(){
+		aws-azure-login
+		cde sdk use node_v10
+		export AWS_PROFILE=default
+		export PASSWORD=random_password
+
+		aws-es-kibana -b `hostname` https://vpc-adp-feeds-7k3afot3ka6ipb6uxbzpptglca.eu-central-1.es.amazonaws.com
+
+	}
+
+	# echo CDE ALIASES LOADED
+}
+
+
+###########   LOCAL Specific
+function run_local_specific() {
+	alias cde='ssh cde'
+	alias cde2='ssh cde2'
+	alias e_='edit_cde_aliases.sh '
+	alias p_='push_cde_aliases.sh'
+	alias start_jupyter='ssh -L 8888:localhost:8888 cde2 "cd /home/klemanski/workspace/klemanski_jup && ./run_me.sh"'
+	alias stop_jupyter='stop_jupyter.sh'
+	alias link_own='ln -s ~/PycharmProjects/_own_/ _own_'
+
+	# echo LOCAL ALIASES LOADED
+}
+
+
+
+###########  MAIN
+
+if [[ "$(hostname)" = klemanski-nm ]]
+then
+	export ROOT_WORKSPACE=$HOME/PycharmProjects/
+	run_local_specific
+else
+ 	export ROOT_WORKSPACE=$HOME
+	run_cde_specific
+fi
+
+run_common_post
+
+
+
+###########  TRASH
+#_g_completitions(){
+#  COMPREPLY=($(compgen -W "now tomorrow never" "${COMP_WORDS[1]}"))
+#}
+
+
+
