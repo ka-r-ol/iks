@@ -87,7 +87,7 @@ class MainMenu:
             "exit": True if quick_execution else False
         }
 
-        menu = Menu()
+        menu = Menu(menu_path=self.menu_path)
         while True:
 
             ctx = self._analize_user_input(ctx)
@@ -102,9 +102,20 @@ class MainMenu:
 
 
 class Menu:
+    def __init__(self, menu_path: str = ""):
+        self.menu_path = menu_path
+
+    def _get_header(self, path):
+
+        list1 = os.path.normpath(path[len(self.menu_path):]).split(os.sep)
+        list2 = filter(lambda x: len(x) > 1, list1)
+        header = list(map(lambda x: x.split("__")[:1][0], list2))
+
+        return header
 
     def _show_menu(self, ctx: Ctx, menu_items: dict):
-        print("---v")
+        header = self._get_header(ctx.get('path'))
+        print(f"---v: {header}")
         for command, menu_item in menu_items.items():
             print(f"{C.HEADER}{command:10}{C.ENDC}{menu_item[0]}")
         print("---^")
