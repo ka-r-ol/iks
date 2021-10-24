@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+# OPTIONAL ENVs
+
+# IKS ENVs
+export IKS_BASE_DIR=$HOME/PycharmProjects/iks
+export IKS_MENU_DIR=$HOME/.iks//menu
+
+
+$IKS_BASE_DIR/run_me.sh $@
