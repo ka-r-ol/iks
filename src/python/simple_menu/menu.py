@@ -3,6 +3,7 @@ import logging
 from typing import TypedDict
 from pathlib import Path, PosixPath
 
+
 class C:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -16,30 +17,31 @@ class C:
 
 
 class Ctx(TypedDict):
+    header: str
     path: str
     quick_execution: list
     user_input: str
     exit: bool
 
 
+def _is_exe(fpath: str):
+    if not os.path.isfile(fpath):
+        return False
+    if not os.access(fpath, os.X_OK):
+        logging.warning(f"{fpath} is not executable")
+        return False
+    return True
+
+
+def _is_dir(fpath: str):
+    return os.path.isdir(fpath)
+
+
 class MainMenu:
     def __init__(self, menu_path: str):
-        if not self._is_dir(menu_path):
+        if not _is_dir(menu_path):
             raise Exception(f"{menu_path} is not a directory!!! Exiting...")
         self.menu_path = menu_path
-
-    @staticmethod
-    def _is_exe(fpath: str):
-        if not os.path.isfile(fpath):
-            return False
-        if not os.access(fpath, os.X_OK):
-            logging.warning(f"{fpath} is not executable")
-            return False
-        return True
-
-    @staticmethod
-    def _is_dir(fpath: str):
-        return os.path.isdir(fpath)
 
     @staticmethod
     def _exit():
@@ -59,15 +61,17 @@ class MainMenu:
             if user_inputs[0] == 'up':
                 if ctx['path'] != self.menu_path:
                     ctx['path'] = os.path.dirname(ctx['path'])
+                    ctx['header'] = ctx['header'][:ctx['header'].rfind('/')]
             elif user_inputs[0] == 'top':
+                ctx['header'] = '/'
                 ctx['path'] = self.menu_path
-            elif user_inputs[0] == 'exit'  or user_inputs[0] == 'quit':
+            elif user_inputs[0] in ['exit', 'quit']:
                 self._exit()
             elif user_inputs[0] == 'clear':
                 os.system("clear")
             elif user_inputs[0] == 'bash':
                 os.system("/usr/local/bin/bash")
-            elif user_inputs[0] == '?':
+            elif user_inputs[0] in ['?', 'help']:
                 self._help()
         if len(user_inputs) > 1:
             ctx['quick_execution'] = user_inputs
@@ -76,6 +80,7 @@ class MainMenu:
 
     def run(self, quick_execution: list = []):
         ctx: Ctx = {
+            "header": "/",
             "path": self.menu_path,
             "quick_execution": quick_execution,
             "user_input": "",
@@ -87,7 +92,7 @@ class MainMenu:
 
             ctx = self._analize_user_input(ctx)
 
-            if self._is_exe(ctx.get("path")):
+            if _is_exe(ctx.get("path")):
                 os.system(ctx.get("path"))
                 if ctx['exit']:
                     self._exit()
@@ -108,7 +113,7 @@ class Menu:
     def _prepare_menu_item(self, name: PosixPath):
         return name.name.split("__")[:2]
 
-    def _prepare_menu_items(self, path: str) -> dict:
+    def _prepare_menu_items(self, ctx: Ctx, path: str) -> dict:
         menu_items = dict()
         p = Path(path)
         for name in p.glob('[!\.]*__*__item*'):
@@ -119,8 +124,7 @@ class Menu:
 
     def run(self, ctx: Ctx):
 
-        menu_items = self._prepare_menu_items(ctx['path'])
-        # if not ctx['exit']:
+        menu_items = self._prepare_menu_items(ctx, ctx['path'])
         if ctx['quick_execution']:
             user_input = ctx['quick_execution'][0]
             if user_input in menu_items.keys():
