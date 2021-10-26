@@ -1,5 +1,5 @@
 import logging
-from lib import MainMenu, global_ctx
+from libki import MainMenu, global_ctx
 
 if __name__ == "__main__":
     try:
