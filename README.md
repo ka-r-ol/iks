@@ -1,5 +1,5 @@
 # iks
-Simple task manager
+Simple script manager
 
 
 Install
