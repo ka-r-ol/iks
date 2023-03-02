@@ -109,7 +109,7 @@ class Menu:
     def _show_menu(self, ctx: Ctx, menu_items: dict):
         header = self._get_header(ctx.get('path'))
         print(f"---v{header}")
-        for command, menu_item in menu_items.items():
+        for command, menu_item in sorted(menu_items.items(),  key=lambda x: x[0]):
             print(f"{C.HEADER}{command:10}{C.ENDC}{menu_item[0]}")
         print("---^")
         print(f"{C.BOLD}{'?':5}{C.ENDC}help")
