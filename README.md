@@ -9,7 +9,7 @@ Install
 cd ~/PycharmProjects
 git clone https://github.com/ka-r-ol/iks.git
 cd iks
-python3 -m venv venv
+sh install_me.sh
 cp -R use_case/.iks ~/.iks
 cp use_case/iks ~/bin 
 chmod u+x ~/bin/iks
