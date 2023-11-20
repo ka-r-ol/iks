@@ -18,7 +18,6 @@
                 "cwd": "${workspaceFolder}",
                 "program": "src/python/iks.py",
                 "args": [
-                    "arg1",
                    
                 ]
             }

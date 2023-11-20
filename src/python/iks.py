@@ -1,6 +1,7 @@
 import logging
 from libki import MainMenu, global_ctx
 
+
 if __name__ == "__main__":
     try:
         MainMenu().run(quick_execution=global_ctx.quick_execution)

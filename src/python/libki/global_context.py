@@ -6,7 +6,7 @@ class GlobalContext:
     menu_path: str
     editor: str
     shell: str
-    quick_execution: str = sys.argv[1:] if len(sys.argv) > 1 else []
+    quick_execution: list = sys.argv[1:] if len(sys.argv) > 1 else []
 
     def __init__(self):
         self.menu_path = self._get_env_value(env_param='IKS_MENU_DIR')
