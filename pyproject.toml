@@ -13,6 +13,8 @@ ruff = "^0.1.6"
 black = "^23.11.0"
 mypy = "^1.7.0"
 
+# [tool.black]
+# line-length = 88
 
 [build-system]
 requires = ["poetry-core"]

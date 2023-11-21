@@ -6,15 +6,15 @@ from .global_context import global_ctx
 
 
 class C:
-    HEADER = '\033[95m'
-    OKBLUE = '\033[94m'
-    OKCYAN = '\033[96m'
-    OKGREEN = '\033[92m'
-    WARNING = '\033[93m'
-    FAIL = '\033[91m'
-    ENDC = '\033[0m'
-    BOLD = '\033[1m'
-    UNDERLINE = '\033[4m'
+    HEADER = "\033[95m"
+    OKBLUE = "\033[94m"
+    OKCYAN = "\033[96m"
+    OKGREEN = "\033[92m"
+    WARNING = "\033[93m"
+    FAIL = "\033[91m"
+    ENDC = "\033[0m"
+    BOLD = "\033[1m"
+    UNDERLINE = "\033[4m"
 
 
 class Ctx(TypedDict):
@@ -35,7 +35,6 @@ def _is_exe(fpath: str):
 
 
 class MainMenu:
-
     @staticmethod
     def _exit():
         print("Done!")
@@ -50,28 +49,30 @@ class MainMenu:
         print("exit, quit  - exit iks")
 
     def _analize_user_input(self, ctx: Ctx) -> Ctx:
-        user_inputs = list(filter(lambda x: len(x) > 0, ctx.get("user_input").split(" ")))
+        user_inputs = list(
+            filter(lambda x: len(x) > 0, ctx.get("user_input").split(" "))
+        )
         if len(user_inputs) == 1:
-            if user_inputs[0] == 'up':
-                if ctx['path'] != global_ctx.menu_path:
-                    ctx['path'] = os.path.dirname(ctx['path'])
-                    ctx['header'] = ctx['header'][:ctx['header'].rfind('/')]
-            elif user_inputs[0] == 'top':
-                ctx['header'] = '/'
-                ctx['path'] = global_ctx.menu_path
-            elif user_inputs[0] in ['exit', 'quit']:
+            if user_inputs[0] == "up":
+                if ctx["path"] != global_ctx.menu_path:
+                    ctx["path"] = os.path.dirname(ctx["path"])
+                    ctx["header"] = ctx["header"][: ctx["header"].rfind("/")]
+            elif user_inputs[0] == "top":
+                ctx["header"] = "/"
+                ctx["path"] = global_ctx.menu_path
+            elif user_inputs[0] in ["exit", "quit"]:
                 self._exit()
-            elif user_inputs[0] == 'clear':
+            elif user_inputs[0] == "clear":
                 os.system("clear")
-            elif user_inputs[0] == 'shell':
+            elif user_inputs[0] == "shell":
                 os.system(global_ctx.shell)
-            elif user_inputs[0] == 'e':
+            elif user_inputs[0] == "e":
                 os.system(f"{global_ctx.editor} {ctx['path']}")
-            elif user_inputs[0] in ['?', 'help']:
+            elif user_inputs[0] in ["?", "help"]:
                 self._help()
         if len(user_inputs) > 1:
-            ctx['quick_execution'] = user_inputs
-            ctx['user_input'] = ""
+            ctx["quick_execution"] = user_inputs
+            ctx["user_input"] = ""
         return ctx
 
     def run(self, quick_execution: list = []):
@@ -80,36 +81,34 @@ class MainMenu:
             "path": global_ctx.menu_path,
             "quick_execution": quick_execution,
             "user_input": "",
-            "exit": True if quick_execution else False
+            "exit": True if quick_execution else False,
         }
 
         menu = Menu()
         while True:
-
             ctx = self._analize_user_input(ctx)
 
             if _is_exe(ctx.get("path")):
                 os.system(ctx.get("path"))
-                if ctx['exit']:
+                if ctx["exit"]:
                     self._exit()
-                ctx['path'] = os.path.dirname(ctx['path'])
+                ctx["path"] = os.path.dirname(ctx["path"])
 
             ctx = menu.run(ctx=ctx)
 
 
 class Menu:
-
     def _get_header(self, path):
-        list1 = os.path.normpath(path[len(global_ctx.menu_path):]).split(os.sep)
+        list1 = os.path.normpath(path[len(global_ctx.menu_path) :]).split(os.sep)
         list2 = filter(lambda x: len(x) > 1, list1)
         header = list(map(lambda x: x.split("__")[:1][0], list2))
 
         return f": {C.BOLD}[ {' / '.join(header)} ]{C.ENDC}"
 
     def _show_menu(self, ctx: Ctx, menu_items: dict):
-        header = self._get_header(ctx.get('path'))
+        header = self._get_header(ctx.get("path"))
         print(f"---v{header}")
-        for command, menu_item in sorted(menu_items.items(),  key=lambda x: x[0]):
+        for command, menu_item in sorted(menu_items.items(), key=lambda x: x[0]):
             print(f"{C.HEADER}{command:10}{C.ENDC}{menu_item[0]}")
         print("---^")
         print(f"{C.BOLD}{'?':5}{C.ENDC}help")
@@ -120,20 +119,20 @@ class Menu:
     def _prepare_menu_items(self, ctx: Ctx, path: str) -> dict:
         menu_items = dict()
         p = Path(path)
-        for name in p.glob('[!\.]*__*__item*'):
+        for name in p.glob("[!\.]*__*__item*"):
             command, label = self._prepare_menu_item(name=name)
             menu_items[command] = (label, str(name))
 
         return menu_items
 
     def run(self, ctx: Ctx):
-        menu_items = self._prepare_menu_items(ctx, ctx['path'])
-        if ctx['quick_execution']:
-            user_input = ctx['quick_execution'][0]
+        menu_items = self._prepare_menu_items(ctx, ctx["path"])
+        if ctx["quick_execution"]:
+            user_input = ctx["quick_execution"][0]
             if user_input in menu_items.keys():
-                ctx['quick_execution'] = ctx['quick_execution'][1:]
+                ctx["quick_execution"] = ctx["quick_execution"][1:]
             else:
-                ctx['quick_execution'] = []
+                ctx["quick_execution"] = []
 
         else:
             self._show_menu(ctx=ctx, menu_items=menu_items)
@@ -142,8 +141,8 @@ class Menu:
                 os.system("clear")
 
         if user_input in menu_items.keys():
-            ctx['path'] = menu_items[user_input][1]
-            ctx['user_input'] = ""
+            ctx["path"] = menu_items[user_input][1]
+            ctx["user_input"] = ""
         else:
-            ctx['user_input'] = user_input
+            ctx["user_input"] = user_input
         return ctx

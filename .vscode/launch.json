@@ -16,7 +16,7 @@
                     "IKS_MENU_DIR": "${workspaceFolder}/use_case/.iks" 
                 },     
                 "cwd": "${workspaceFolder}",
-                "program": "src/python/iks.py",
+                "program": "iks/iks.py",
                 "args": [
                    
                 ]
